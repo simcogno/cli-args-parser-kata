@@ -1,49 +1,49 @@
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class CliArgsParser {
-
-	private Map<Object, Object> map = new HashMap<Object, Object>();
-	private Object[] args;
-
-	public String parse(String input) {
-		Object[] splitted = input.split(" ");
-		return parse(splitted);
-	}
 	
-	public String parse(Object[] input) {
+	private Map<Object, Object> map = new HashMap<Object, Object>();
+	
+	public String parse(Object[] args) {
+		return parse(arrayToStringFormatter(args));
+	}
+
+	public String parse(String args) {
+
+		String pattern = "--[a-z]+ ?[a-z0-9]*";
+				
+		Pattern p = Pattern.compile(pattern);
+		Matcher m = p.matcher(args);
 		
-		args = input;		
-		
-		for(int i = 0; i < args.length; i++) {
-			if(isSimple(i)) {
-				map.put(removeMinus((String) args[i]), true);
-			} else {
-				map.put(removeMinus((String) args[i]), args[i+1]);
-				i++;
-			}
+		while(m.find()) {
+			addToMap(m.group());
 		}
 		
 		return map.toString();
-
 	}
 	
-	private boolean isSimple(int i) {
-		if((i+1) < args.length) {
-			if(args[i+1] instanceof Integer) {
-				return false;
-			}
-			if(((String) args[i+1]).startsWith("--")) {
-				return true;
-			} else {
-				return false;
-			}			
+	private void addToMap(String completeArgument) {
+		String[] parts = completeArgument.split(" ");
+		String firstPart = parts[0].replaceAll("--", "");
+		
+		if(parts.length == 1) {
+			map.put(firstPart, true);
+		} else {
+			map.put(firstPart, parts[1]);
 		}
-		return true;
 	}
 	
-	private String removeMinus(String old) {
-		return new String (old.replaceFirst("(--)", ""));
+	private String arrayToStringFormatter(Object[] array) {
+		String completeInput = Arrays.toString(array);
+		String inputWithoutBrackets = completeInput.substring(1, completeInput.length()-1);
+		String correct = inputWithoutBrackets.replaceAll(",","");
+		return correct;
 	}
+	
+	
 
 }
